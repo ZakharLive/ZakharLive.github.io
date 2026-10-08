@@ -14,6 +14,10 @@
   .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(147, 51, 234, 0.5); }
   .btn-donate { background: linear-gradient(135deg, #f59e0b, #ef4444); transition: all 0.3s; }
   .btn-donate:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5); }
+  .chat-msg { animation: slideIn 0.3s ease-out; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+  .online-dot { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -25,32 +29,43 @@
       <div class="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-xl font-bold neon-border">Z</div>
       <div>
         <h1 id="header-name" class="text-2xl font-black tracking-tight neon-text">ZAKHAR<span class="text-purple-500">LIVE</span></h1>
-        <p id="header-tagline" class="text-xs text-gray-400 uppercase tracking-widest">Стример · Геймер · Создатель контента</p>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="online-dot w-2 h-2 bg-green-500 rounded-full"></span>
+          <span class="text-green-400 font-bold"><span id="online-count">0</span> онлайн</span>
+          <span class="text-gray-600">•</span>
+          <span class="text-gray-500"><span id="chat-msg-count">0</span> сообщений</span>
+        </div>
       </div>
     </div>
-    <button onclick="toggleAdmin()" class="text-xs text-gray-600 hover:text-purple-400 border border-gray-800 px-3 py-1.5 rounded transition">⚙️ Управление</button>
+    <div class="flex gap-2">
+      <button onclick="toggleAdmin()" class="text-xs text-gray-600 hover:text-purple-400 border border-gray-800 px-3 py-1.5 rounded transition">⚙️ Управление</button>
+    </div>
   </div>
 </header>
 
 <main class="flex-1 container mx-auto p-4 space-y-8 max-w-5xl">
 
-  <!-- Герой: Статистика и Кнопки -->
+  <!-- Статистика -->
   <section class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-    <div class="glass p-4 rounded-xl">
-      <p class="text-2xl md:text-3xl font-black text-purple-400" id="stat-subs">1.2K</p>
+    <div class="glass p-4 rounded-xl relative group">
+      <p class="text-2xl md:text-3xl font-black text-purple-400" id="stat-subs">0</p>
       <p class="text-xs text-gray-500 uppercase mt-1">Подписчиков</p>
+      <button onclick="resetStat('subs')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-xs text-gray-600 hover:text-red-400 transition">✕</button>
     </div>
-    <div class="glass p-4 rounded-xl">
-      <p class="text-2xl md:text-3xl font-black text-pink-400" id="stat-hours">340</p>
+    <div class="glass p-4 rounded-xl relative group">
+      <p class="text-2xl md:text-3xl font-black text-pink-400" id="stat-hours">0</p>
       <p class="text-xs text-gray-500 uppercase mt-1">Часов в эфире</p>
+      <button onclick="resetStat('hours')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-xs text-gray-600 hover:text-red-400 transition">✕</button>
     </div>
-    <div class="glass p-4 rounded-xl">
-      <p class="text-2xl md:text-3xl font-black text-yellow-400" id="stat-donates">850</p>
+    <div class="glass p-4 rounded-xl relative group">
+      <p class="text-2xl md:text-3xl font-black text-yellow-400" id="stat-donates">0</p>
       <p class="text-xs text-gray-500 uppercase mt-1">Донатов</p>
+      <button onclick="resetStat('donates')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-xs text-gray-600 hover:text-red-400 transition">✕</button>
     </div>
-    <div class="glass p-4 rounded-xl">
-      <p class="text-2xl md:text-3xl font-black text-green-400" id="stat-rank">#42</p>
+    <div class="glass p-4 rounded-xl relative group">
+      <p class="text-2xl md:text-3xl font-black text-green-400" id="stat-rank">0</p>
       <p class="text-xs text-gray-500 uppercase mt-1">Место в топе</p>
+      <button onclick="resetStat('rank')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-xs text-gray-600 hover:text-red-400 transition">✕</button>
     </div>
   </section>
 
@@ -77,15 +92,34 @@
       </div>
     </div>
 
-    <!-- Чат -->
-    <div class="glass rounded-2xl flex flex-col h-[400px] lg:h-auto overflow-hidden">
+    <!-- СВОЙ ЧАТ (не Twitch) -->
+    <div class="glass rounded-2xl flex flex-col h-[500px] lg:h-auto overflow-hidden">
       <div class="p-3 border-b border-gray-800 font-bold flex justify-between items-center bg-gray-900/50">
-        <span>💬 Чат трансляции</span>
-        <span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded text-gray-400">Twitch</span>
+        <span>💬 Наш чат</span>
+        <span class="text-[10px] bg-purple-900/50 text-purple-300 px-2 py-0.5 rounded">Встроенный</span>
       </div>
-      <div id="chat-container" class="flex-1 bg-gray-950 relative">
-        <div class="absolute inset-0 flex items-center justify-center text-gray-600 text-sm p-4 text-center">
-          Укажи свой Twitch-канал в панели управления (⚙️), чтобы чат появился здесь.
+      
+      <!-- Сообщения -->
+      <div id="chat-messages" class="flex-1 overflow-y-auto p-3 space-y-2 bg-gray-950">
+        <div class="text-center text-gray-600 text-sm py-8">
+          <p>💬 Напиши первое сообщение!</p>
+          <p class="text-xs mt-1">Все сообщения сохраняются</p>
+        </div>
+      </div>
+      
+      <!-- Форма отправки -->
+      <div class="p-3 border-t border-gray-800 bg-gray-900/50">
+        <div class="flex gap-2 mb-2">
+          <input id="chat-username" type="text" placeholder="Твоё имя" maxlength="15" 
+                 class="flex-1 bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:border-purple-500 outline-none">
+        </div>
+        <div class="flex gap-2">
+          <input id="chat-input" type="text" placeholder="Написать сообщение..." maxlength="200"
+                 class="flex-1 bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:border-purple-500 outline-none"
+                 onkeypress="if(event.key==='Enter') sendMessage()">
+          <button onclick="sendMessage()" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg text-sm font-bold transition">
+            ➤
+          </button>
         </div>
       </div>
     </div>
@@ -103,30 +137,13 @@
   <section class="glass rounded-2xl p-6 md:p-8">
     <h2 class="text-xl font-bold mb-4 text-purple-400">👤 О стримере</h2>
     <p id="about-text" class="text-gray-300 leading-relaxed mb-6">
-      Привет! Я стримлю любимые игры и общаюсь с чатом. Моя цель — создать уютное комьюнити, где каждый может отдохнуть после тяжелого дня. Играю честно, без токсичности, всегда рад новым зрителям!
+      Привет! Я стримлю любимые игры и общаюсь с чатом. Моя цель — создать уютное комьюнити, где каждый может отдохнуть после тяжелого дня.
     </p>
-    <div class="flex flex-wrap gap-4 text-sm">
-      <span class="bg-gray-900 px-4 py-2 rounded-lg border border-gray-800">🎯 Любимые жанры: <span class="text-white">FPS, RPG, Выживание</span></span>
-      <span class="bg-gray-900 px-4 py-2 rounded-lg border border-gray-800">⚡ Стиль игры: <span class="text-white">Агрессивный и тактический</span></span>
-    </div>
-  </section>
-
-  <!-- Контакты -->
-  <section class="text-center pb-8">
-    <h2 class="text-lg font-bold mb-4 text-gray-400">По вопросам сотрудничества и рекламы</h2>
-    <div class="flex justify-center gap-4">
-      <a id="link-tg" href="#" target="_blank" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 px-6 py-3 rounded-xl font-medium transition flex items-center gap-2">
-        ✈️ Telegram
-      </a>
-      <a id="link-email" href="#" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 px-6 py-3 rounded-xl font-medium transition flex items-center gap-2">
-        ✉️ Email
-      </a>
-    </div>
   </section>
 
 </main>
 
-<!-- ===== ПАНЕЛЬ УПРАВЛЕНИЯ (Скрыта) ===== -->
+<!-- ===== ПАНЕЛЬ УПРАВЛЕНИЯ ===== -->
 <div id="admin-panel" class="hidden fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
   <div class="glass bg-gray-950 rounded-2xl p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto">
     <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -136,28 +153,39 @@
     
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="text-xs text-gray-500 block mb-1">Имя / Ник</label>
+        <label class="text-xs text-gray-500 block mb-1">Имя стримера</label>
         <input id="admin-name" type="text" class="w-full bg-gray-900 border border-gray-800 rounded px-3 py-2 text-white focus:border-purple-500 outline-none">
       </div>
       <div>
-        <label class="text-xs text-gray-500 block mb-1">Twitch канал (для чата)</label>
+        <label class="text-xs text-gray-500 block mb-1">Twitch канал (для видео)</label>
         <input id="admin-twitch" type="text" placeholder="напр: shroud" class="w-full bg-gray-900 border border-gray-800 rounded px-3 py-2 text-white focus:border-purple-500 outline-none">
       </div>
     </div>
 
     <div>
-      <label class="text-xs text-gray-500 block mb-1">Ссылка на донаты (DonationAlerts и т.д.)</label>
+      <label class="text-xs text-gray-500 block mb-1">Ссылка на донаты</label>
       <input id="admin-donate" type="text" class="w-full bg-gray-900 border border-gray-800 rounded px-3 py-2 text-white focus:border-purple-500 outline-none">
     </div>
 
-    <div class="grid grid-cols-2 gap-3">
-      <div>
-        <label class="text-xs text-gray-500 block mb-1">Telegram</label>
-        <input id="admin-tg" type="text" class="w-full bg-gray-900 border border-gray-800 rounded px-3 py-2 text-white focus:border-purple-500 outline-none">
-      </div>
-      <div>
-        <label class="text-xs text-gray-500 block mb-1">Email</label>
-        <input id="admin-email" type="text" class="w-full bg-gray-900 border border-gray-800 rounded px-3 py-2 text-white focus:border-purple-500 outline-none">
+    <div class="border-t border-gray-800 pt-3">
+      <h4 class="text-sm font-bold text-gray-400 mb-3">Статистика (можно обнулить)</h4>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs text-gray-500 block mb-1">Подписчики</label>
+          <input id="admin-subs" type="number" class="w-full bg-gray-900 border border-gray-800 rounded px-3 py-2 text-white focus:border-purple-500 outline-none">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 block mb-1">Часов стримов</label>
+          <input id="admin-hours" type="number" class="w-full bg-gray-900 border border-gray-800 rounded px-3 py-2 text-white focus:border-purple-500 outline-none">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 block mb-1">Донатов</label>
+          <input id="admin-donates-count" type="number" class="w-full bg-gray-900 border border-gray-800 rounded px-3 py-2 text-white focus:border-purple-500 outline-none">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 block mb-1">Место в топе</label>
+          <input id="admin-rank" type="number" class="w-full bg-gray-900 border border-gray-800 rounded px-3 py-2 text-white focus:border-purple-500 outline-none">
+        </div>
       </div>
     </div>
 
@@ -165,24 +193,29 @@
       <input type="checkbox" id="admin-live" class="w-5 h-5 accent-purple-600 rounded">
       <div>
         <label for="admin-live" class="text-sm font-bold text-red-400 cursor-pointer">Показывать статус LIVE</label>
-        <p class="text-xs text-gray-500">Включает красную плашку и меняет текст на "В эфире"</p>
+        <p class="text-xs text-gray-500">Включает красную плашку</p>
       </div>
     </div>
 
-    <button onclick="saveSettings()" class="w-full btn-primary py-3 rounded-xl font-bold mt-2">💾 Сохранить и применить</button>
-    <p class="text-xs text-gray-600 text-center">Настройки сохраняются локально в твоём браузере.</p>
+    <div class="flex gap-3">
+      <button onclick="clearAllChat()" class="flex-1 bg-red-900/30 border border-red-800 hover:bg-red-900/50 text-red-400 py-3 rounded-xl font-bold transition">
+        🗑 Очистить чат
+      </button>
+      <button onclick="saveSettings()" class="flex-1 btn-primary py-3 rounded-xl font-bold">
+        💾 Сохранить
+      </button>
+    </div>
   </div>
 </div>
 
 <script>
-// Настройки по умолчанию
+// ===== КОНФИГУРАЦИЯ =====
 const defaultConfig = {
   name: "ZAKHARLIVE",
-  twitchChannel: "", 
+  twitchChannel: "",
   donateLink: "https://www.donationalerts.com/",
-  tgLink: "https://t.me/",
-  emailLink: "mailto:email@example.com",
   isLive: false,
+  stats: { subs: 0, hours: 0, donates: 0, rank: 0 },
   schedule: [
     { day: "ПН", game: "Valorant", time: "20:00", status: "СКОРО" },
     { day: "СР", game: "Cyberpunk 2077", time: "19:00", status: "СКОРО" },
@@ -192,27 +225,139 @@ const defaultConfig = {
   ]
 };
 
-let config = JSON.parse(localStorage.getItem('streamConfig')) || defaultConfig;
+let config = JSON.parse(localStorage.getItem('streamConfig')) || JSON.parse(JSON.stringify(defaultConfig));
+let chatMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+let onlineUsers = new Set();
 
+// ===== ОНЛАЙН СЧЁТЧИК =====
+function updateOnlineCount() {
+  // Генерируем уникальный ID для этого пользователя
+  let userId = sessionStorage.getItem('userId');
+  if (!userId) {
+    userId = 'user_' + Math.random().toString(36).substr(2, 9);
+    sessionStorage.setItem('userId', userId);
+  }
+  
+  // Получаем всех активных пользователей (за последние 5 минут)
+  const allUsers = JSON.parse(localStorage.getItem('onlineUsers')) || {};
+  const now = Date.now();
+  
+  // Добавляем текущего
+  allUsers[userId] = now;
+  
+  // Удаляем старых (> 5 минут)
+  Object.keys(allUsers).forEach(id => {
+    if (now - allUsers[id] > 5 * 60 * 1000) {
+      delete allUsers[id];
+    }
+  });
+  
+  localStorage.setItem('onlineUsers', JSON.stringify(allUsers));
+  
+  // Обновляем счётчик
+  const count = Object.keys(allUsers).length;
+  document.getElementById('online-count').textContent = count;
+}
+
+// ===== ЧАТ =====
+function renderChat() {
+  const container = document.getElementById('chat-messages');
+  document.getElementById('chat-msg-count').textContent = chatMessages.length;
+  
+  if (chatMessages.length === 0) {
+    container.innerHTML = `
+      <div class="text-center text-gray-600 text-sm py-8">
+        <p>💬 Напиши первое сообщение!</p>
+        <p class="text-xs mt-1">Все сообщения сохраняются</p>
+      </div>`;
+    return;
+  }
+  
+  container.innerHTML = chatMessages.map(msg => `
+    <div class="chat-msg bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+      <div class="flex items-center justify-between mb-1">
+        <span class="font-bold text-purple-400 text-sm">${escapeHtml(msg.username || 'Аноним')}</span>
+        <span class="text-xs text-gray-600">${new Date(msg.time).toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})}</span>
+      </div>
+      <p class="text-sm text-gray-300 break-words">${escapeHtml(msg.text)}</p>
+    </div>
+  `).join('');
+  
+  // Прокрутка вниз
+  container.scrollTop = container.scrollHeight;
+}
+
+function sendMessage() {
+  const usernameInput = document.getElementById('chat-username');
+  const input = document.getElementById('chat-input');
+  const username = usernameInput.value.trim() || 'Аноним';
+  const text = input.value.trim();
+  
+  if (!text) return;
+  
+  chatMessages.push({
+    username: username,
+    text: text,
+    time: Date.now()
+  });
+  
+  // Ограничиваем до 100 сообщений
+  if (chatMessages.length > 100) {
+    chatMessages = chatMessages.slice(-100);
+  }
+  
+  localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+  input.value = '';
+  usernameInput.value = username; // сохраняем имя
+  renderChat();
+}
+
+function clearAllChat() {
+  if (confirm('Очистить все сообщения в чате?')) {
+    chatMessages = [];
+    localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+    renderChat();
+  }
+}
+
+// ===== СТАТИСТИКА =====
+function updateStats() {
+  document.getElementById('stat-subs').textContent = formatNumber(config.stats.subs);
+  document.getElementById('stat-hours').textContent = formatNumber(config.stats.hours);
+  document.getElementById('stat-donates').textContent = formatNumber(config.stats.donates);
+  document.getElementById('stat-rank').textContent = '#' + formatNumber(config.stats.rank);
+}
+
+function resetStat(type) {
+  if (confirm('Обнулить этот счётчик?')) {
+    config.stats[type] = 0;
+    localStorage.setItem('streamConfig', JSON.stringify(config));
+    updateStats();
+  }
+}
+
+function formatNumber(num) {
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+  return num.toString();
+}
+
+// ===== НАСТРОЙКИ =====
 function applyConfig() {
-  document.getElementById('header-name').innerHTML = config.name.includes('LIVE') ? config.name.replace('LIVE', '<span class="text-purple-500">LIVE</span>') : config.name;
+  document.getElementById('header-name').innerHTML = config.name.includes('LIVE') ? 
+    config.name.replace('LIVE', '<span class="text-purple-500">LIVE</span>') : config.name;
   document.getElementById('link-donate').href = config.donateLink;
-  document.getElementById('link-tg').href = config.tgLink;
-  document.getElementById('link-email').href = config.emailLink;
   
   // LIVE статус
-  const badge = document.getElementById('live-badge');
-  badge.classList.toggle('hidden', !config.isLive);
+  document.getElementById('live-badge').classList.toggle('hidden', !config.isLive);
   
-  // Чат и стрим
-  const chatContainer = document.getElementById('chat-container');
-  const embedContainer = document.getElementById('stream-embed');
-  
+  // Twitch видео (если указан канал)
   if (config.twitchChannel) {
-    embedContainer.innerHTML = `<iframe src="https://player.twitch.tv/?channel=${config.twitchChannel}&parent=${window.location.hostname}" frameborder="0" allowfullscreen scrolling="no" height="100%" width="100%"></iframe>`;
-    chatContainer.innerHTML = `<iframe src="https://www.twitch.tv/embed/${config.twitchChannel}/chat?parent=${window.location.hostname}&darkpopout" frameborder="0" scrolling="no" height="100%" width="100%"></iframe>`;
+    document.getElementById('stream-embed').innerHTML = 
+      `<iframe src="https://player.twitch.tv/?channel=${config.twitchChannel}&parent=${window.location.hostname}" 
+      frameborder="0" allowfullscreen scrolling="no" height="100%" width="100%"></iframe>`;
   }
-
+  
   // Расписание
   const schedGrid = document.getElementById('schedule-grid');
   schedGrid.innerHTML = config.schedule.map(s => `
@@ -222,6 +367,9 @@ function applyConfig() {
       <p class="text-xs ${s.active && config.isLive ? 'text-green-400 font-bold' : 'text-gray-400'}">${s.time} МСК · ${s.status}</p>
     </div>
   `).join('');
+  
+  updateStats();
+  renderChat();
 }
 
 function toggleAdmin() {
@@ -229,10 +377,12 @@ function toggleAdmin() {
   panel.classList.toggle('hidden');
   if (!panel.classList.contains('hidden')) {
     document.getElementById('admin-name').value = config.name;
-    document.getElementById('admin-twitch').value = config.twitchChannel;
+    document.getElementById('admin-twitch').value = config.twitchChannel || '';
     document.getElementById('admin-donate').value = config.donateLink;
-    document.getElementById('admin-tg').value = config.tgLink;
-    document.getElementById('admin-email').value = config.emailLink;
+    document.getElementById('admin-subs').value = config.stats.subs;
+    document.getElementById('admin-hours').value = config.stats.hours;
+    document.getElementById('admin-donates-count').value = config.stats.donates;
+    document.getElementById('admin-rank').value = config.stats.rank;
     document.getElementById('admin-live').checked = config.isLive;
   }
 }
@@ -241,8 +391,10 @@ function saveSettings() {
   config.name = document.getElementById('admin-name').value || defaultConfig.name;
   config.twitchChannel = document.getElementById('admin-twitch').value.toLowerCase().trim();
   config.donateLink = document.getElementById('admin-donate').value || defaultConfig.donateLink;
-  config.tgLink = document.getElementById('admin-tg').value || defaultConfig.tgLink;
-  config.emailLink = document.getElementById('admin-email').value || defaultConfig.emailLink;
+  config.stats.subs = parseInt(document.getElementById('admin-subs').value) || 0;
+  config.stats.hours = parseInt(document.getElementById('admin-hours').value) || 0;
+  config.stats.donates = parseInt(document.getElementById('admin-donates-count').value) || 0;
+  config.stats.rank = parseInt(document.getElementById('admin-rank').value) || 0;
   config.isLive = document.getElementById('admin-live').checked;
   
   localStorage.setItem('streamConfig', JSON.stringify(config));
@@ -250,7 +402,31 @@ function saveSettings() {
   toggleAdmin();
 }
 
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// ===== ИНИЦИАЛИЗАЦИЯ =====
 applyConfig();
+updateOnlineCount();
+setInterval(updateOnlineCount, 30000); // Обновляем онлайн каждые 30 сек
+
+// Слушаем изменения в других вкладках
+window.addEventListener('storage', (e) => {
+  if (e.key === 'chatMessages') {
+    chatMessages = JSON.parse(e.newValue) || [];
+    renderChat();
+  }
+  if (e.key === 'onlineUsers') {
+    updateOnlineCount();
+  }
+  if (e.key === 'streamConfig') {
+    config = JSON.parse(e.newValue) || JSON.parse(JSON.stringify(defaultConfig));
+    applyConfig();
+  }
+});
 </script>
 </body>
 </html>
